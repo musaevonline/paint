@@ -2,21 +2,98 @@
 
 <head>
   <title>Пример страницы</title>
+  <script>
+    fetch('https://www.cbr-xml-daily.ru/daily_json.js').then(res => res.json()).then(data => {
+      const tbody = document.querySelector('tbody');
+      console.log(data)
+      const valutes = Object.values(data.Valute);
+      for (let i = 0; i < valutes.length; i++) {
+        const valute = valutes[i];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input type="radio" name="current"</td>
+          <td>${valute.Name}</td>
+          <td>${valute.CharCode}</td>
+          <td>${valute.Value}</td>
+          <td>${valute.Previous}</td>
+        `;
+        tbody.appendChild(tr);
+        tr.querySelector('input').addEventListener('click', () => {
+          const currentDiv = document.querySelector('.current');
+          currentDiv.innerHTML = `
+            <div style="display: flex; gap: 10px">
+              ${valute.Name}
+              ${valute.CharCode}
+              ${valute.Value}
+              ${valute.Previous}
+            </div>
+            <div style="display: flex; gap: 10px">
+              <input>
+              <div>x</div>
+              <div>${valute.Value}</div>
+              <div>=</div>
+              <div class="result"></div>
+            </div>
+            <button>Заказать</button>
+          `
+          currentDiv.querySelector('input').addEventListener('input', e => {
+            const amount = Number(e.target.value)
+            const resultDiv = currentDiv.querySelector('.result');
+            resultDiv.textContent = amount * valute.Value;
+          })
+          currentDiv.querySelector('button').addEventListener('click', () => {
+            const ordersTBody = document.querySelector('.orders');
+            const amount = Number(currentDiv.querySelector('input').value)
+            const result = Number(currentDiv.querySelector('.result').textContent);
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${valute.Name}</td>
+              <td>${valute.Value}</td>
+              <td>${amount}</td>
+              <td>${result}</td>
+            `
+            ordersTBody.appendChild(tr)
+            localStorage.setItem('orders', ordersTBody.innerHTML)
+          })
+        })
+      }
+    })
 
+    window.addEventListener('load', () => {
+      document.querySelector('.orders').innerHTML = localStorage.getItem('orders');
+    })
+  </script>
 </head>
 
 <body>
-  <script defer>
-    window.addEventListener('mousemove', (e) => {
-      console.log(e)
-      const el = document.createElement('span');
-      el.innerHTML = '1';
-      el.style.position = 'absolute';
-      el.style.left = `${e.clientX}px`
-      el.style.top = `${e.clientY}px`
-      document.body.appendChild(el);
-    })
-  </script>
+  <div style="display: flex; align-items: flex-start;">
+    <table>
+      <thead>
+        <th></th>
+        <th>Валюта</th>
+        <th>Код</th>
+        <th>Курс</th>
+        <th>Вчерашний курс</th>
+      </thead>
+      <tbody>
+
+      </tbody>
+    </table>
+    <div style="margin-left: 100px;">
+      <div class="current"></div>
+      <table>
+        <thead>
+          <th>Валюта</th>
+          <th>Курс</th>
+          <th>Количество</th>
+          <th>Стоимость</th>
+        </thead>
+        <tbody class="orders">
+
+        </tbody>
+      </table>
+    </div>
+  </div>
 </body>
 
 </html>
